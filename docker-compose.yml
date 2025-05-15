@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:4.0.8-management
+    hostname: rabbit-server
+    ports:
+      - "5672:5672"  # AMQP port
+      - "15672:15672"  # Management UI port
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_ALLOW_LOCALHOST_FOR_TESTING: 1 # for localhost testing, TODO maybe remove later?
+      # TODO potential issue with guest/guest during production, if so change to admin/password
+#      RABBITMQ_DEFAULT_USER: admin
+#      RABBITMQ_DEFAULT_PASS: password
+
+  database:
+    image: postgres:16 #potentially change version to something else
+    ports:
+      - "5432:5432" #change port when needed
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lol_data
+
+  db-reset:
+    image: postgres:16
+    volumes:
+      - ./database/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      PGPASSWORD: postgres
+    command: >
+      bash -c "sleep 5 && psql -h database -U postgres -d lol_data -f /docker-entrypoint-initdb.d/init.sql"
+    restart: "no"
+
+  producer:
+    build: ./producer
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./data:/data:ro  # Read only, change if something breaks
+    environment:
+      RABBITMQ_HOST: rabbit-server
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_RAW_QUEUE: raw_data
+      RABBITMQ_PROCESSED_QUEUE: processed_data
+      # TODO potential issue with guest/guest during production, if so change to admin/password
+#      RABBITMQ_USER: admin
+#      RABBITMQ_PASSWORD: password
+      INPUT_CSV: /data/updated_match_data.csv
+
+  uploader:
+    build: ./uploader
+    depends_on:
+      - rabbitmq
+      - database
+    environment:
+      RABBITMQ_HOST: rabbit-server
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_RAW_QUEUE: raw_data
+      RABBITMQ_PROCESSED_QUEUE: processed_data
+      # TODO potential issue with guest/guest during production, if so change to admin/password
+#      RABBITMQ_USER: admin
+#      RABBITMQ_PASSWORD: password
+      DB_HOST: database
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: lol_data
+      DB_PORT: "5432"
+
+volumes:
+  rabbitmq_data:
+  postgres_data:
