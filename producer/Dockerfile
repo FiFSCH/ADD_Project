@@ -7,11 +7,11 @@ ENV PYTHONUNBUFFERED 1
 # Prevents pip from caching packages, which reduces image size
 ENV PIP_NO_CACHE_DIR 1
 # No, AI did not write these comments, I wrote them by hand
-# I asked it for recommendations to see if I fucked up somewhere
+# I asked it for recommendations to see if I f#$!ed up somewhere
 
 WORKDIR /app
 
-# System dependencies, specifically for ah uhhhhhhh psycopg2 and fucken uhhhhh pandas
+# System dependencies, specifically for ah uhhhhhhh psycopg2 and f#$!en uhhhhh pandas
 RUN apt-get update && \
     apt-get install -y --no-install-recommends gcc python3-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/* ./
 
-#ThingyFuckenMagic about not running it as the root user ¯\_(ツ)_/¯
+#ThingyF#$!enMagic about not running it as the root user ¯\_(ツ)_/¯
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
 

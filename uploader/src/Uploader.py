@@ -51,14 +51,14 @@ def save_to_table(data, table_name):
         conn.rollback()
 
 
-def raw_callback(ch, method, body):
+def raw_callback(ch, method, properties, body):
     match = json.loads(body)
     save_to_table(match, "raw_data")
     print(f"[RAW] Saved match {match.get('matchId')}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
-def processed_callback(ch, method, body):
+def processed_callback(ch, method, properties, body):
     match = json.loads(body)
     save_to_table(match, "processed_data")
     print(f"[PROCESSED] Saved match {match.get('matchId')}")

@@ -47,7 +47,7 @@ __Dataset:__ [League of Legends Dataset](https://www.kaggle.com/datasets/karloru
 
 2.**Connect to container CLI + Connect to postgres + Connect to lol_data DB**:
 ```powershell
-docker exec -it add-database-1 psql -U postgres -d lol_data
+docker exec -it add_project-database-1 psql -U postgres -d lol_data
 ```
 
 3.**You can execute SQL commands from here, such as**:
