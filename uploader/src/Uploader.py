@@ -32,22 +32,24 @@ cursor = conn.cursor()
 
 
 def save_to_table(data, table_name):
-    columns = list(data.keys())
-    values = [data[col] for col in columns]
+    columns = list(data[0].keys())
+    values = [[record.get(col) for col in columns] for record in data]
 
     cols_sql = ', '.join(columns)
     placeholders = ', '.join(['%s'] * len(columns))
 
     sql = f"""
-        INSERT INTO {table_name} ({cols_sql})
-        VALUES ({placeholders})
-        ON CONFLICT DO NOTHING;
-    """
+           INSERT INTO {table_name} ({cols_sql})
+           VALUES ({placeholders})
+           ON CONFLICT DO NOTHING;
+       """
+
     try:
-        cursor.execute(sql, values)
+        cursor.executemany(sql, values)
         conn.commit()
+        print(f"[INFO] Inserted {len(values)} records into {table_name}")
     except Exception as e:
-        print(f"[ERROR] Inserting into {table_name}: {e}")
+        print(f"[ERROR] Batch insert into {table_name}: {e}")
         conn.rollback()
 
 

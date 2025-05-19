@@ -1,13 +1,12 @@
 import pika
 import pandas as pd
 import json
-import time
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-INPUT_CSV = os.getenv('INPUT_CSV', '../../data/updated_match_data.csv')
+INPUT_CSV = os.getenv('INPUT_CSV', '../data/updated_match_data.csv')
 RABBITMQ_HOST = os.getenv('RABBITMQ_HOST', 'rabbit-server')
 RABBITMQ_RAW_QUEUE = os.getenv('RABBITMQ_RAW_QUEUE', 'raw_data')
 RABBITMQ_PROCESSED_QUEUE = os.getenv('RABBITMQ_PROCESSED_QUEUE', 'processed_data')
@@ -23,13 +22,14 @@ def main():
         channel = connection.channel()
         channel.queue_declare(queue=RABBITMQ_RAW_QUEUE)
 
-        for i, record in enumerate(records):
-            message = json.dumps(record)
-            channel.basic_publish(exchange='',
+
+# TODO POSSIBLE BATCH REFACTOR
+        message = json.dumps(records)
+        channel.basic_publish(exchange='',
                                   routing_key=RABBITMQ_RAW_QUEUE,
                                   body=message)
-            print(f"[{i + 1}] Sent match record to queue.")
-            time.sleep(SEND_DELAY)
+       # print(f"[{i + 1}] Sent match record to queue.")
+       # time.sleep(SEND_DELAY)
 
         print("All data sent.")
 

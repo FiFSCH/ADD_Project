@@ -31,13 +31,10 @@ CREATE TABLE IF NOT EXISTS raw_data (
 );
 CREATE TABLE IF NOT EXISTS processed_data (
     matchId TEXT PRIMARY KEY,
-    blueTeamControlWardsPlaced INTEGER,
-    blueTeamWardsPlaced INTEGER,
     blueTeamTotalKills INTEGER,
     blueTeamDragonKills INTEGER,
     blueTeamHeraldKills INTEGER,
     blueTeamTowersDestroyed INTEGER,
-    blueTeamInhibitorsDestroyed INTEGER,
     blueTeamTurretPlatesDestroyed INTEGER,
     blueTeamFirstBlood INTEGER,
     blueTeamMinionsKilled INTEGER,
@@ -45,18 +42,16 @@ CREATE TABLE IF NOT EXISTS processed_data (
     blueTeamTotalGold INTEGER,
     blueTeamXp INTEGER,
     blueTeamTotalDamageToChamps INTEGER,
-    redTeamControlWardsPlaced INTEGER,
-    redTeamWardsPlaced INTEGER,
     redTeamTotalKills INTEGER,
     redTeamDragonKills INTEGER,
     redTeamHeraldKills INTEGER,
     redTeamTowersDestroyed INTEGER,
-    redTeamInhibitorsDestroyed INTEGER,
     redTeamTurretPlatesDestroyed INTEGER,
     redTeamMinionsKilled INTEGER,
     redTeamJungleMinions INTEGER,
     redTeamTotalGold INTEGER,
     redTeamXp INTEGER,
     redTeamTotalDamageToChamps INTEGER,
-    blueWin INTEGER
+    blueWin INTEGER,
+    gold_difference INTEGER
 );

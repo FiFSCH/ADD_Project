@@ -76,6 +76,17 @@ services:
       DB_NAME: lol_data
       DB_PORT: "5432"
 
+  processor:
+    build: ./processor
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: rabbit-server
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_RAW_QUEUE: raw_data
+      RABBITMQ_PROCESSED_QUEUE: processed_data
+
 volumes:
   rabbitmq_data:
   postgres_data:
