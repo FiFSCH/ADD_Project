@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS raw_data (
     redTeamTotalDamageToChamps INTEGER,
     blueWin INTEGER
 );
+
 CREATE TABLE IF NOT EXISTS processed_data (
     matchId TEXT PRIMARY KEY,
     blueTeamTotalKills INTEGER,
@@ -54,4 +55,9 @@ CREATE TABLE IF NOT EXISTS processed_data (
     redTeamTotalDamageToChamps INTEGER,
     blueWin INTEGER,
     gold_difference INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS ml_metrics (
+    id SERIAL PRIMARY KEY,
+    Accuracy NUMERIC
 );
