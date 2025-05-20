@@ -8,6 +8,7 @@ load_dotenv()
 
 RABBITMQ_PRODUCER_PROCESSOR_QUEUE = os.getenv('RABBITMQ_PRODUCER_PROCESSOR_QUEUE', 'producer_processor_raw_data')
 RABBITMQ_PROCESSOR_UPLOADER_QUEUE = os.getenv('RABBITMQ_PROCESSOR_UPLOADER_QUEUE', 'processor_uploader_processed_data')
+RABBITMQ_PROCESSOR_ML_QUEUE = os.getenv('RABBITMQ_PROCESSOR_ML_QUEUE', 'processor_ml_processed_data')
 
 OG_COLUMNS = [
     'matchId', 'blueTeamControlWardsPlaced', 'blueTeamWardsPlaced',
@@ -60,10 +61,14 @@ def callback(ch, method, properties, body):
         processed = process_match(match)
 
         if processed:
-            # Send to processed Q
             ch.basic_publish(
                 exchange='',
                 routing_key=RABBITMQ_PROCESSOR_UPLOADER_QUEUE,
+                body=json.dumps(processed)
+            )
+            ch.basic_publish(
+                exchange='',
+                routing_key=RABBITMQ_PROCESSOR_ML_QUEUE,
                 body=json.dumps(processed)
             )
             print(f"[PROCESSOR] Processed match: {processed['matchId']}")
@@ -80,7 +85,10 @@ def start_processor():
     connection = get_rabbitmq_connection()
     channel = connection.channel()
 
+    # Not sure if these queues are required,
     channel.queue_declare(queue=RABBITMQ_PRODUCER_PROCESSOR_QUEUE)
+    channel.queue_declare(queue=RABBITMQ_PROCESSOR_UPLOADER_QUEUE)
+    channel.queue_declare(queue=RABBITMQ_PROCESSOR_ML_QUEUE)
 
     channel.basic_consume(queue=RABBITMQ_PRODUCER_PROCESSOR_QUEUE, on_message_callback=callback)
 

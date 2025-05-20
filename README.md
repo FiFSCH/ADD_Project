@@ -12,12 +12,12 @@ __Dataset:__ [League of Legends Dataset](https://www.kaggle.com/datasets/karloru
    cd ...
    ```
 
-**Start the containers**:
+**Create the containers**:
    ```powershell
    docker-compose up -d
    ```
 
-**(Alternative) Extra fun and safe build in case you want a hard reset**:
+**(Alternative) Create containers + hard reset (good if docker ignored changes to code)**:
    ```powershell
    docker-compose build --no-cache
    ```
