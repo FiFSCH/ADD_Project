@@ -49,8 +49,8 @@ services:
       RABBITMQ_HOST: rabbit-server
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
-      RABBITMQ_RAW_QUEUE: raw_data
-      RABBITMQ_PROCESSED_QUEUE: processed_data
+      RABBITMQ_PRODUCER_UPLOADER_QUEUE: producer_uploader_raw_data
+      RABBITMQ_PRODUCER_PROCESSOR_QUEUE: producer_processor_raw_data
       # TODO potential issue with guest/guest during production, if so change to admin/password
 #      RABBITMQ_USER: admin
 #      RABBITMQ_PASSWORD: password
@@ -65,8 +65,12 @@ services:
       RABBITMQ_HOST: rabbit-server
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
-      RABBITMQ_RAW_QUEUE: raw_data
-      RABBITMQ_PROCESSED_QUEUE: processed_data
+      RABBITMQ_PRODUCER_UPLOADER_QUEUE: producer_uploader_raw_data
+      RABBITMQ_PROCESSOR_UPLOADER_QUEUE: processor_uploader_processed_data
+      RABBITMQ_ML_UPLOADER_QUEUE: ml_uploader_metrics_data
+      #TODO queues for DB probably not needed here
+      RABBITMQ__QUEUE: _data
+
       # TODO potential issue with guest/guest during production, if so change to admin/password
 #      RABBITMQ_USER: admin
 #      RABBITMQ_PASSWORD: password
@@ -75,6 +79,10 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: lol_data
       DB_PORT: "5432"
+      RAW_DATA_TABLE: raw_data
+      PROCESSED_DATA_TABLE: processed_data
+      METRICS_TABLE: ml_metrics
+
 
   processor:
     build: ./processor
@@ -84,8 +92,10 @@ services:
       RABBITMQ_HOST: rabbit-server
       RABBITMQ_USER: guest
       RABBITMQ_PASSWORD: guest
-      RABBITMQ_RAW_QUEUE: raw_data
-      RABBITMQ_PROCESSED_QUEUE: processed_data
+      RABBITMQ_PRODUCER_PROCESSOR_QUEUE: producer_processor_raw_data
+      RABBITMQ_PROCESSOR_UPLOADER_QUEUE: processor_uploader_processed_data
+      #TODO PROCESSOR-ML QUEUE
+
 
 volumes:
   rabbitmq_data:

@@ -6,6 +6,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+RABBITMQ_PRODUCER_UPLOADER_QUEUE = os.getenv('RABBITMQ_PRODUCER_UPLOADER_QUEUE', 'producer_uploader_raw_data')
+RABBITMQ_PROCESSOR_UPLOADER_QUEUE = os.getenv('RABBITMQ_PROCESSOR_UPLOADER_QUEUE', 'processor_uploader_processed_data')
+RABBITMQ_ML_UPLOADER_QUEUE = os.getenv('RABBITMQ_ML_UPLOADER_QUEUE', 'ml_uploader_metrics_data')
+RAW_DATA_TABLE = os.getenv('RAW_DATA_TABLE', 'raw_data')
+PROCESSED_DATA_TABLE = os.getenv('PROCESSED_DATA_TABLE', 'processed_data')
+METRICS_TABLE = os.getenv('METRICS_TABLE', 'ml_metrics')
+
 
 def get_db_connection():
     return psycopg2.connect(
@@ -55,15 +62,22 @@ def save_to_table(data, table_name):
 
 def raw_callback(ch, method, properties, body):
     match = json.loads(body)
-    save_to_table(match, "raw_data")
-    print(f"[RAW] Saved match {match.get('matchId')}")
+    save_to_table(match, RAW_DATA_TABLE)
+    print(f"[{RAW_DATA_TABLE}] Saved match {match.get('matchId')}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
 def processed_callback(ch, method, properties, body):
     match = json.loads(body)
-    save_to_table(match, "processed_data")
-    print(f"[PROCESSED] Saved match {match.get('matchId')}")
+    save_to_table(match, PROCESSED_DATA_TABLE)
+    print(f"[{PROCESSED_DATA_TABLE}] Saved match {match.get('matchId')}")
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+
+def metrics_callback(ch, method, properties, body):
+    match = json.loads(body)
+    save_to_table(match, METRICS_TABLE)
+    print(f"[{METRICS_TABLE}] Saved match {match.get('matchId')}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
@@ -71,13 +85,15 @@ try:
     connection = get_rabbitmq_connection()
     channel = connection.channel()
 
-    channel.queue_declare(queue='raw_data')
-    channel.queue_declare(queue='processed_data')
+    channel.queue_declare(queue=RABBITMQ_PRODUCER_UPLOADER_QUEUE)
+    channel.queue_declare(queue=RABBITMQ_PROCESSOR_UPLOADER_QUEUE)
+    channel.queue_declare(queue=RABBITMQ_ML_UPLOADER_QUEUE)
 
-    channel.basic_consume(queue='raw_data', on_message_callback=raw_callback)
-    channel.basic_consume(queue='processed_data', on_message_callback=processed_callback)
+    channel.basic_consume(queue=RABBITMQ_PRODUCER_UPLOADER_QUEUE, on_message_callback=raw_callback)
+    channel.basic_consume(queue=RABBITMQ_PROCESSOR_UPLOADER_QUEUE, on_message_callback=processed_callback)
+    channel.basic_consume(queue=RABBITMQ_ML_UPLOADER_QUEUE, on_message_callback=metrics_callback)
 
-    print("Uploader listening to 'raw_data' and 'processed_data' queues...")
+    print(f"Uploader listening to {RABBITMQ_PRODUCER_UPLOADER_QUEUE}, {RABBITMQ_PROCESSOR_UPLOADER_QUEUE}, {RABBITMQ_ML_UPLOADER_QUEUE} queues...")
     channel.start_consuming()
 except KeyboardInterrupt:
     print("Shutting down uploader...")

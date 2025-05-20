@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+RABBITMQ_PRODUCER_PROCESSOR_QUEUE = os.getenv('RABBITMQ_PRODUCER_PROCESSOR_QUEUE', 'producer_processor_raw_data')
+RABBITMQ_PROCESSOR_UPLOADER_QUEUE = os.getenv('RABBITMQ_PROCESSOR_UPLOADER_QUEUE', 'processor_uploader_processed_data')
+
 OG_COLUMNS = [
     'matchId', 'blueTeamControlWardsPlaced', 'blueTeamWardsPlaced',
     'blueTeamTotalKills', 'blueTeamDragonKills', 'blueTeamHeraldKills',
@@ -24,6 +27,7 @@ COLUMNS_TO_DROP = [
     'blueTeamControlWardsPlaced', 'blueTeamWardsPlaced', 'blueTeamInhibitorsDestroyed',
     'redTeamInhibitorsDestroyed', 'redTeamControlWardsPlaced', 'redTeamWardsPlaced'
 ]
+
 
 def get_rabbitmq_connection():
     return pika.BlockingConnection(pika.ConnectionParameters(
@@ -59,7 +63,7 @@ def callback(ch, method, properties, body):
             # Send to processed Q
             ch.basic_publish(
                 exchange='',
-                routing_key='processed_data',
+                routing_key=RABBITMQ_PROCESSOR_UPLOADER_QUEUE,
                 body=json.dumps(processed)
             )
             print(f"[PROCESSOR] Processed match: {processed['matchId']}")
@@ -76,10 +80,9 @@ def start_processor():
     connection = get_rabbitmq_connection()
     channel = connection.channel()
 
-    channel.queue_declare(queue='raw_data')
-    channel.queue_declare(queue='processed_data')
+    channel.queue_declare(queue=RABBITMQ_PRODUCER_PROCESSOR_QUEUE)
 
-    channel.basic_consume(queue='raw_data', on_message_callback=callback)
+    channel.basic_consume(queue=RABBITMQ_PRODUCER_PROCESSOR_QUEUE, on_message_callback=callback)
 
     print("[PROCESSOR] Listening...")
     try:
