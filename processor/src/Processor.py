@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import pika
 import pandas as pd
 from dotenv import load_dotenv
@@ -9,6 +10,11 @@ load_dotenv()
 RABBITMQ_PRODUCER_PROCESSOR_QUEUE = os.getenv('RABBITMQ_PRODUCER_PROCESSOR_QUEUE', 'producer_processor_raw_data')
 RABBITMQ_PROCESSOR_UPLOADER_QUEUE = os.getenv('RABBITMQ_PROCESSOR_UPLOADER_QUEUE', 'processor_uploader_processed_data')
 RABBITMQ_PROCESSOR_ML_QUEUE = os.getenv('RABBITMQ_PROCESSOR_ML_QUEUE', 'processor_ml_processed_data')
+
+# Batching mechanism - collect all items for ML. No items for past 5 sec => send batch to ML
+MESSAGES_TIMEOUT_IN_SEC = 5
+batch = []
+last_message_arrival_time = time.time()
 
 OG_COLUMNS = [
     'matchId', 'blueTeamControlWardsPlaced', 'blueTeamWardsPlaced',
@@ -55,7 +61,21 @@ def process_match(match):
         return None
 
 
+def send_data_batch_to_ml(channel):
+    global batch
+    if batch:
+        channel.basic_publish(
+            exchange='',
+            routing_key=RABBITMQ_PROCESSOR_ML_QUEUE,
+            body=json.dumps(batch)
+        )
+        print(f"[PROCESSOR] Sent {len(batch)} matches to ML")
+        batch = []
+
+
 def callback(ch, method, properties, body):
+    global last_message_arrival_time, batch
+
     try:
         match = json.loads(body)
         processed = process_match(match)
@@ -66,11 +86,10 @@ def callback(ch, method, properties, body):
                 routing_key=RABBITMQ_PROCESSOR_UPLOADER_QUEUE,
                 body=json.dumps(processed)
             )
-            ch.basic_publish(
-                exchange='',
-                routing_key=RABBITMQ_PROCESSOR_ML_QUEUE,
-                body=json.dumps(processed)
-            )
+
+            batch.append(processed)
+            last_message_arrival_time = time.time()
+
             print(f"[PROCESSOR] Processed match: {processed['matchId']}")
         else:
             print("[PROCESSOR] Processing error")
@@ -82,6 +101,8 @@ def callback(ch, method, properties, body):
 
 
 def start_processor():
+    global last_message_arrival_time
+
     connection = get_rabbitmq_connection()
     channel = connection.channel()
 
@@ -93,15 +114,14 @@ def start_processor():
     channel.basic_consume(queue=RABBITMQ_PRODUCER_PROCESSOR_QUEUE, on_message_callback=callback)
 
     print("[PROCESSOR] Listening...")
-    try:
-        channel.start_consuming()
-    except KeyboardInterrupt:
-        print("[PROCESSOR] Exiting...")
-        channel.close()
-        connection.close()
+    while True:
+        connection.process_data_events(time_limit=1)
+
+        # send data in batch to ML after 5 seconds without any new messages
+        if time.time() - last_message_arrival_time > MESSAGES_TIMEOUT_IN_SEC:
+            send_data_batch_to_ml(channel)
+            last_message_arrival_time = time.time()
 
 
 if __name__ == "__main__":
     start_processor()
-
-# TODO add sending messages to ML component

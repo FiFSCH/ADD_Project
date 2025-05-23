@@ -77,7 +77,7 @@ def processed_callback(ch, method, properties, body):
 def metrics_callback(ch, method, properties, body):
     match = json.loads(body)
     save_to_table(match, METRICS_TABLE)
-    print(f"[{METRICS_TABLE}] Saved match {match.get('matchId')}")
+    print(f"[{METRICS_TABLE}] Saved ML model accuracy.")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 

@@ -83,7 +83,6 @@ services:
       PROCESSED_DATA_TABLE: processed_data
       METRICS_TABLE: ml_metrics
 
-
   processor:
     build: ./processor
     depends_on:
@@ -95,7 +94,18 @@ services:
       RABBITMQ_PRODUCER_PROCESSOR_QUEUE: producer_processor_raw_data
       RABBITMQ_PROCESSOR_UPLOADER_QUEUE: processor_uploader_processed_data
       RABBITMQ_PROCESSOR_ML_QUEUE: processor_ml_processed_data
-      #TODO PROCESSOR-ML QUEUE
+
+  model:
+    build: ./ml_model
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: rabbit-server
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_MODEL_INPUT_QUEUE: processor_ml_processed_data
+      RABBITMQ_ML_UPLOADER_QUEUE: ml_uploader_metrics_data
+      MODEL_INPUT: /ml_model/logistic_regression_add.pkl
 
 
 volumes:
