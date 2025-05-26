@@ -113,6 +113,20 @@ services:
       MODEL_INPUT: /ml_model/logistic_regression_add.pkl
 
 
+  presenter:
+    build: ./presenter
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+    environment:
+      DB_HOST: database
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: lol_data
+
+
 volumes:
   rabbitmq_data:
   postgres_data:

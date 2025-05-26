@@ -3,10 +3,13 @@ import pandas as pd
 import json
 import os
 from dotenv import load_dotenv
+import time
+import traceback
+
 
 load_dotenv()
 
-INPUT_CSV = os.getenv('INPUT_CSV', '/data/updated_match_data.csv')
+INPUT_CSV = os.getenv('INPUT_CSV', '../../data/updated_match_data.csv')
 RABBITMQ_HOST = os.getenv('RABBITMQ_HOST', 'rabbit-server')
 RABBITMQ_PRODUCER_UPLOADER_QUEUE = os.getenv('RABBITMQ_PRODUCER_UPLOADER_QUEUE', 'producer_uploader_raw_data')
 RABBITMQ_PRODUCER_PROCESSOR_QUEUE = os.getenv('RABBITMQ_PRODUCER_PROCESSOR_QUEUE', 'producer_processor_raw_data')
@@ -32,12 +35,17 @@ def main():
                                   body=message)
             print(f"[{i + 1}] Sent match record to queue {RABBITMQ_PRODUCER_UPLOADER_QUEUE}.")
             print(f"[{i + 1}] Sent match record to queue {RABBITMQ_PRODUCER_PROCESSOR_QUEUE}.")
-       # time.sleep(SEND_DELAY)
+        # time.sleep(SEND_DELAY)
 
         print("All data sent.")
 
+        while True:
+            time.sleep(3600)
+
+
     except Exception as e:
         print(f"Exception: {e}")
+        traceback.print_exc()
     finally:
         if 'connection' in locals() and connection.is_open:
             connection.close()
