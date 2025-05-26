@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-INPUT_CSV = os.getenv('INPUT_CSV', '../../data/updated_match_data.csv')
+INPUT_CSV = os.getenv('INPUT_CSV', '/data/updated_match_data.csv')
 RABBITMQ_HOST = os.getenv('RABBITMQ_HOST', 'rabbit-server')
 RABBITMQ_PRODUCER_UPLOADER_QUEUE = os.getenv('RABBITMQ_PRODUCER_UPLOADER_QUEUE', 'producer_uploader_raw_data')
 RABBITMQ_PRODUCER_PROCESSOR_QUEUE = os.getenv('RABBITMQ_PRODUCER_PROCESSOR_QUEUE', 'producer_processor_raw_data')

@@ -30,6 +30,8 @@ services:
       POSTGRES_DB: lol_data
 
   db-reset:
+    depends_on:
+      - database
     image: postgres:16
     volumes:
       - ./database/init-db.sql:/docker-entrypoint-initdb.d/init.sql
@@ -37,7 +39,7 @@ services:
       PGPASSWORD: postgres
     command: >
       bash -c "sleep 5 && psql -h database -U postgres -d lol_data -f /docker-entrypoint-initdb.d/init.sql"
-    restart: "no"
+    restart: on-failure
 
   producer:
     build: ./producer
@@ -55,6 +57,7 @@ services:
 #      RABBITMQ_USER: admin
 #      RABBITMQ_PASSWORD: password
       INPUT_CSV: /data/updated_match_data.csv
+      restart: on-failure
 
   uploader:
     build: ./uploader
@@ -82,6 +85,7 @@ services:
       RAW_DATA_TABLE: raw_data
       PROCESSED_DATA_TABLE: processed_data
       METRICS_TABLE: ml_metrics
+      restart: on-failure
 
   processor:
     build: ./processor
@@ -94,6 +98,7 @@ services:
       RABBITMQ_PRODUCER_PROCESSOR_QUEUE: producer_processor_raw_data
       RABBITMQ_PROCESSOR_UPLOADER_QUEUE: processor_uploader_processed_data
       RABBITMQ_PROCESSOR_ML_QUEUE: processor_ml_processed_data
+      restart: on-failure
 
   model:
     build: ./ml_model

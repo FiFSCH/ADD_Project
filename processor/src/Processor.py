@@ -37,13 +37,26 @@ COLUMNS_TO_DROP = [
 
 
 def get_rabbitmq_connection():
-    return pika.BlockingConnection(pika.ConnectionParameters(
-        host=os.getenv('RABBITMQ_HOST', 'rabbit-server'),
-        port=int(os.getenv('RABBITMQ_PORT', '5672')),
-        credentials=pika.PlainCredentials(
-            username=os.getenv('RABBITMQ_USER', 'guest'),
-            password=os.getenv('RABBITMQ_PASSWORD', 'guest')
-        )))
+    retries = 10
+    delay = 3
+
+    for attempt in range(1, retries + 1):
+        try:
+            print(f"Attempt {attempt} to connect to Rabbit 🐰")
+            return pika.BlockingConnection(pika.ConnectionParameters(
+                host=os.getenv('RABBITMQ_HOST', 'rabbit-server'),
+                port=int(os.getenv('RABBITMQ_PORT', '5672')),
+                credentials=pika.PlainCredentials(
+                    username=os.getenv('RABBITMQ_USER', 'guest'),
+                    password=os.getenv('RABBITMQ_PASSWORD', 'guest')
+                )
+            ))
+        except pika.exceptions.AMQPConnectionError as e:
+            print(f"Rabbit not ready :( (attempt {attempt}")
+            time.sleep(delay)
+
+    raise Exception("GG no connection after multiple attempts...")
+
 
 
 def process_match(match):
