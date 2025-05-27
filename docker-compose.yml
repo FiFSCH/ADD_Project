@@ -127,6 +127,11 @@ services:
       DB_NAME: lol_data
 
 
+  frontend:
+     build: ./frontend
+     ports:
+       - "5173:4173"
+
 volumes:
   rabbitmq_data:
   postgres_data:

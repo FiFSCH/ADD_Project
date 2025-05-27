@@ -1,0 +1,23 @@
+
+.main-container {
+  position: relative;
+  z-index: 1;
+  color: white;
+  padding: 10rem 5rem;
+
+  h2, h4, li {
+    color: white;
+  }
+
+  h4 {
+    margin-top: 1em;
+  }
+  .ant-tabs-tab-btn {
+    color: white;
+  }
+  .ant-list-item {
+    color: white;
+    background-color: #141414;
+    font-size: 1.6rem;
+  }
+}
