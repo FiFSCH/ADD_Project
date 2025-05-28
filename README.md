@@ -2,18 +2,18 @@
 
 The goal of this project is to create a system that uses RabbitMQ to send data across different components that are responsible for the following things:
 
-1. Producer
+1. __Producer__
     * Supplying data from the dataset to the Processor.
     * Supplying data from the dataset to the Uploader.
-2. Processor
+2. __Processor__
     * Data transformation.
-3. Uploader
+3. __Uploader__
     * Uploding data sent by the Producer to the Database.
     * Uploding data sent by the Processor to the Database.
-4. Database
+4. __Database__
     * Stores data provided by the Producer.
     * Stores data provided by the Processor.
-5. Presenter
+5. __Presenter__
     * Presenting data supplied by the Processor. 
 
 The architecture of the system can be obsserved on the following diagram:
