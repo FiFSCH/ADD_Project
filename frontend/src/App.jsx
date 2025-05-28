@@ -19,8 +19,10 @@ function App() {
         const fetchAll = async () => {
             try {
                 const [rawRes, processedRes] = await Promise.all([
-                    fetch('http://localhost:8000/raw_data?limit=50'),
-                    fetch('http://localhost:8000/processed_data?limit=50'),
+                    fetch('http://localhost:8000/raw_data'),
+                    fetch('http://localhost:8000/processed_data'),
+                    // fetch('http://localhost:8000/raw_data?limit=50'),
+                    // fetch('http://localhost:8000/processed_data?limit=50'),
                 ]);
 
                 const [rawJson, processedJson] = await Promise.all([
@@ -77,7 +79,10 @@ function App() {
                                 columns={generateColumns(rawData)}
                                 scroll={{x: 'max-content'}}
                                 bordered
-                                // pagination={false}
+                                pagination={{
+                                    pageSize: 12,
+                                    showSizeChanger: false,
+                                }}
                             />
                         </TabPane>
 
@@ -88,6 +93,10 @@ function App() {
                                 scroll={{x: 'max-content'}}
                                 bordered
                                 // pagination={false}
+                                pagination={{
+                                    pageSize: 12,
+                                    showSizeChanger: false,
+                                }}
                             />
                         </TabPane>
 
@@ -97,7 +106,6 @@ function App() {
                                 bordered
                                 dataSource={rawOnlyKeys}
                                 renderItem={(item) => <List.Item>❌ {item}</List.Item>}
-                                // pagination={false}
                             />
 
                             <Typography.Title level={4}>
