@@ -11,6 +11,7 @@ const {TabPane} = Tabs;
 function App() {
     const [rawData, setRawData] = useState([]);
     const [processedData, setProcessedData] = useState([]);
+    const [mlMetrics, setMlMetrics] = useState([]);
     const [rawOnlyKeys, setRawOnlyKeys] = useState([]);
     const [processedOnlyKeys, setProcessedOnlyKeys] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -18,20 +19,25 @@ function App() {
     useEffect(() => {
         const fetchAll = async () => {
             try {
-                const [rawRes, processedRes] = await Promise.all([
+                const [rawRes, processedRes, mlMetricsRes] = await Promise.all([
                     fetch('http://localhost:8000/raw_data'),
                     fetch('http://localhost:8000/processed_data'),
+                    fetch('http://localhost:8000/ml_metrics'),
                     // fetch('http://localhost:8000/raw_data?limit=50'),
                     // fetch('http://localhost:8000/processed_data?limit=50'),
+                    // fetch('http://localhost:8000/ml_metrics?limit=50'),
                 ]);
 
-                const [rawJson, processedJson] = await Promise.all([
+                const [rawJson, processedJson, mlMetricsJson] = await Promise.all([
                     rawRes.json(),
                     processedRes.json(),
+                    mlMetricsRes.json(),
+
                 ]);
 
                 setRawData(rawJson);
                 setProcessedData(processedJson);
+                setMlMetrics(mlMetricsJson);
                 setLoading(false);
             } catch (err) {
                 console.error("Fetch error:", err);
@@ -99,7 +105,18 @@ function App() {
                                 }}
                             />
                         </TabPane>
-
+                        <TabPane tab="ML Metrics" key="4">
+                            <Table
+                                dataSource={mlMetrics.map((item, index) => ({...item, key: index}))}
+                                columns={generateColumns(mlMetrics)}
+                                scroll={{x: 'max-content'}}
+                                bordered
+                                pagination={{
+                                    pageSize: 12,
+                                    showSizeChanger: false,
+                                }}
+                            />
+                        </TabPane>
                         <TabPane tab="Differences" key="3">
                             <Typography.Title level={4}>Removed in Processed Data</Typography.Title>
                             <List
